@@ -34,7 +34,9 @@ export default function App() {
       const response = await fetch('/api/events', { headers: { Accept: 'application/json' } })
       if (!response.ok) throw new Error('API unavailable')
       const data = await response.json() as { events?: HookEvent[] }
-      setEvents(data.events ?? [])
+      const incoming = data.events ?? []
+      setEvents(incoming)
+      setSelected(current => incoming.some(event => event.id === current) ? current : incoming[0]?.id ?? '')
       setApiOnline(true)
     } catch {
       setApiOnline(false)
