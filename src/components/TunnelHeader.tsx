@@ -1,4 +1,4 @@
-import { Activity, ArrowUpRight, CircleDot, Radio, ShieldCheck, Trash2, Zap } from 'lucide-react'
+import { Activity, ArrowUpRight, CircleDot, Radio, Trash2, Zap } from 'lucide-react'
 type Props = { count: number; onSimulate: () => void; onClear: () => void }
 export default function TunnelHeader({ count, onSimulate, onClear }: Props) {
   return <header className="topbar">
