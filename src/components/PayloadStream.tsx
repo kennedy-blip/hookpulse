@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Activity, ArrowDownLeft, ArrowUpRight, ChevronDown, Copy, Filter, Play, Search, Terminal, X } from 'lucide-react'
+import { Activity, ChevronDown, Copy, Filter, Play, Search, Terminal } from 'lucide-react'
 import type { HookEvent } from '../types'
 type Props = { events: HookEvent[]; selected: string; onSelect: (id: string) => void; onReplay: (event: HookEvent) => void }
 const color = (s: number) => s === 200 ? 'green' : s === 429 ? 'amber' : s === 500 ? 'rose' : 'slate'

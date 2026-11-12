@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Activity, ArrowDownLeft, ArrowUpRight, CheckCircle2, Clock3, Globe2, Layers3, Radio, ShieldCheck, Zap } from 'lucide-react'
+import { Activity, CheckCircle2, Clock3, Globe2, ShieldCheck, Zap } from 'lucide-react'
 import TunnelHeader from './components/TunnelHeader'
 import PayloadStream from './components/PayloadStream'
 import EndpointRules from './components/EndpointRules'

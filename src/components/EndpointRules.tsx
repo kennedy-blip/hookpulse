@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, ChevronDown, Eye, EyeOff, LockKeyhole, RotateCcw, Save, Shield, SlidersHorizontal } from 'lucide-react'
+import { Check, Eye, EyeOff, LockKeyhole, RotateCcw, Save, Shield, SlidersHorizontal } from 'lucide-react'
 import type { RuleConfig } from '../types'
 type Props = { value: RuleConfig; onChange: (v: RuleConfig) => void }
 export default function EndpointRules({ value, onChange }: Props) {
