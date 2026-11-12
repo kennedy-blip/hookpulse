@@ -9,6 +9,7 @@ export default function PayloadStream({ events, selected, onSelect, onReplay }: 
   const visible = useMemo(() => events.filter(e => (filter === 'All events' || String(e.status) === filter) && (e.source + e.path).toLowerCase().includes(search.toLowerCase())), [events, filter, search])
   const json = (v: unknown) => JSON.stringify(v, null, 2)
   const copy = (v: unknown) => navigator.clipboard?.writeText(json(v))
+  const tokenClass = (part: string) => part.startsWith('\"') ? (part.endsWith(':') ? 'json-key' : 'json-string') : /^\\d+$/.test(part) ? 'json-number' : /^(true|false|null)$/.test(part) ? 'json-bool' : ''
   return <section className="panel stream-panel">
     <div className="panel-head"><div className="panel-title"><span className="head-icon cyan"><Activity size={16}/></span><div><h2>Payload stream</h2><p>Incoming requests <span className="live-label">● LIVE SIMULATION</span></p></div></div><span className="count-chip">{events.length} EVENTS</span></div>
     <div className="stream-layout">
