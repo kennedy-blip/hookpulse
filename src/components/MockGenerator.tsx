@@ -1,0 +1,16 @@
+import { useState } from 'react'
+import { Braces, Code2, Play, RotateCcw, WandSparkles } from 'lucide-react'
+type Props = { onFire: (source: string, body: Record<string, unknown>) => void }
+const presets: Record<string,{source:string;body:Record<string,unknown>}> = {
+  mpesa: {source:'Daraja-STK',body:{Body:{stkCallback:{MerchantRequestID:'29115-34620561-1',CheckoutRequestID:'ws_CO_120320241020',ResultCode:0,ResultDesc:'The service request is processed successfully.',CallbackMetadata:{Item:[{Name:'Amount',Value:1000},{Name:'MpesaReceiptNumber',Value:'QGH7X2P9'},{Name:'PhoneNumber',Value:254712345678}]}}}}},
+  github: {source:'GitHub-Push',body:{ref:'refs/heads/main',before:'a1b2c3d4',after:'e5f6a7b8',repository:{name:'hookpulse',full_name:'kennedy-blip/hookpulse'},pusher:{name:'developer'},commits:[{id:'e5f6a7b8',message:'feat: update webhook handler',timestamp:'2026-11-12T08:30:00Z'}]}},
+  agent: {source:'Jules-Agent',body:{event:'rate_limit.warning',provider:'Groq / OpenRouter',model:'llama-3.3-70b',limit:1000,remaining:42,reset_at:'2026-11-12T12:00:00Z',severity:'warning',request_id:'req_hp_82kLm'}}
+}
+export default function MockGenerator({onFire}:Props){
+ const [preset,setPreset]=useState('mpesa'); const [raw,setRaw]=useState(JSON.stringify(presets.mpesa.body,null,2)); const [error,setError]=useState('')
+ const choose=(key:string)=>{setPreset(key);setRaw(JSON.stringify(presets[key].body,null,2));setError('')}
+ const fire=()=>{try{const parsed=JSON.parse(raw);if(!parsed||Array.isArray(parsed)||typeof parsed!=='object')throw new Error('Payload must be a JSON object');onFire(presets[preset].source,parsed);setError('')}catch(e){setError(e instanceof Error?e.message:'Invalid JSON')}}
+ return <section className="panel generator-panel"><div className="panel-head"><div className="panel-title"><span className="head-icon amber"><WandSparkles size={16}/></span><div><h2>Mock generator</h2><p>Build & dispatch test payloads</p></div></div><span className="count-chip">PLAYGROUND</span></div>
+ <div className="generator-body"><label className="field"><span>Payload template</span><select value={preset} onChange={e=>choose(e.target.value)}><option value="mpesa">M-Pesa STK Push Callback</option><option value="github">GitHub Pull Request / Push</option><option value="agent">Groq / OpenRouter Rate Limit Alert</option></select></label><div className="editor-heading"><span><Code2 size={14}/> JSON EDITOR</span><button onClick={()=>choose(preset)}><RotateCcw size={12}/> Reset template</button></div><div className="mock-editor"><div className="editor-gutter">01<br/>02<br/>03<br/>04<br/>05<br/>06<br/>07<br/>08<br/>09<br/>10</div><textarea spellCheck={false} value={raw} onChange={e=>setRaw(e.target.value)} aria-label="Webhook JSON payload"/></div>{error&&<div className="error-text">{error}</div>}<div className="generator-footer"><span><Braces size={13}/> JSON payload · Local simulation</span><button className="btn btn-primary" onClick={fire}><Play size={14} fill="currentColor"/> Fire webhook</button></div></div>
+ </section>
+}

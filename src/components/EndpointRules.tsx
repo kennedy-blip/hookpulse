@@ -1,0 +1,16 @@
+import { useState } from 'react'
+import { Check, ChevronDown, Eye, EyeOff, LockKeyhole, RotateCcw, Save, Shield, SlidersHorizontal } from 'lucide-react'
+import type { RuleConfig } from '../types'
+type Props = { value: RuleConfig; onChange: (v: RuleConfig) => void }
+export default function EndpointRules({ value, onChange }: Props) {
+  const [showSecret,setShowSecret]=useState(false); const [saved,setSaved]=useState(false)
+  const update = (patch: Partial<RuleConfig>) => { onChange({...value,...patch}); setSaved(false) }
+  return <section className="panel rules-panel"><div className="panel-head"><div className="panel-title"><span className="head-icon violet"><SlidersHorizontal size={16}/></span><div><h2>Endpoint rules</h2><p>Routing & resilience policies</p></div></div><span className="count-chip">CONFIG</span></div>
+    <div className="rules-body"><div className="rule-block"><div className="rule-title"><RotateCcw size={15}/> Retry policy <span className="rule-tag">AUTOMATIC</span></div><div className="field-grid"><label className="field"><span>Max retry attempts</span><select value={value.retries} onChange={e=>update({retries:Number(e.target.value)})}>{[0,1,2,3,4,5,6].map(n=><option key={n} value={n}>{n} attempts</option>)}</select></label><label className="field"><span>Backoff interval</span><select value={value.backoff} onChange={e=>update({backoff:Number(e.target.value)})}>{[1,2,5,10,15,30].map(n=><option key={n} value={n}>{n} seconds</option>)}</select></label></div><div className="hint">Exponential backoff is simulated for retryable responses (429 / 5xx).</div></div>
+    <div className="rule-divider"/>
+    <div className="rule-block"><div className="rule-title"><Shield size={15}/> Signature verification <span className="rule-tag secure">HMAC-SHA256</span></div><label className="toggle-row"><span><b>Verify webhook signatures</b><small>Reject requests with invalid signatures</small></span><button className={'toggle '+(value.verify?'on':'')} onClick={()=>update({verify:!value.verify})} aria-label="Toggle signature verification"><i/></button></label><label className="field secret-field"><span>Signing secret</span><div className="secret-input"><LockKeyhole size={14}/><input value={value.secret} onChange={e=>update({secret:e.target.value})} type={showSecret?'text':'password'} aria-label="Signing secret"/><button onClick={()=>setShowSecret(!showSecret)}>{showSecret?<EyeOff size={14}/>:<Eye size={14}/>}</button></div></label><div className="hint">Demo setting only. Keep real signing secrets on your server, never in browser code.</div></div>
+    <div className="rule-divider"/>
+    <div className="rule-block"><div className="rule-title">Response override</div><label className="field"><span>Default response status</span><select value={value.override} onChange={e=>update({override:e.target.value})}><option value="200">200 — OK</option><option value="202">202 — Accepted</option><option value="204">204 — No Content</option><option value="400">400 — Bad Request</option><option value="429">429 — Too Many Requests</option><option value="500">500 — Server Error</option></select></label></div>
+    <button className="btn btn-primary save-rules" onClick={()=>setSaved(true)}>{saved?<><Check size={15}/> Settings saved locally</>:<><Save size={15}/> Save configuration</>}</button></div>
+  </section>
+}
