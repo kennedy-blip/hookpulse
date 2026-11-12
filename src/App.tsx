@@ -26,12 +26,15 @@ export default function App() {
   const [rules, setRules] = useState<RuleConfig>(initialRules)
   const [toast, setToast] = useState('')
   const [apiOnline, setApiOnline] = useState(false)
+  const [apiToken, setApiToken] = useState('')
+  const [tokenDraft, setTokenDraft] = useState('')
   const counts = useMemo(() => ({ ok: events.filter(e => e.status === 200).length, retry: events.filter(e => e.status === 429).length, failed: events.filter(e => e.status >= 400 && e.status !== 429).length }), [events])
   const notify = (message: string) => { setToast(message); window.setTimeout(() => setToast(''), 2600) }
 
-  const refreshEvents = async () => {
+  const refreshEvents = async (token = apiToken) => {
+    if (!token) { setApiOnline(false); return }
     try {
-      const response = await fetch('/api/events', { headers: { Accept: 'application/json' } })
+      const response = await fetch('/api/events', { headers: { Accept: 'application/json', Authorization: 'Bearer ' + token } })
       if (!response.ok) throw new Error('API unavailable')
       const data = await response.json() as { events?: HookEvent[] }
       const incoming = data.events ?? []
@@ -44,14 +47,15 @@ export default function App() {
   }
 
   useEffect(() => {
-    void refreshEvents()
-    const timer = window.setInterval(() => { void refreshEvents() }, 5000)
+    void refreshEvents(apiToken)
+    const timer = window.setInterval(() => { void refreshEvents(apiToken) }, 5000)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [apiToken])
 
   const add = async (source: string, body: Record<string, unknown>, status: HookEvent['status'] = 200) => {
     try {
-      const response = await fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source, body, status }) })
+      if (!apiToken) throw new Error('Connect the dashboard API first')
+      const response = await fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiToken }, body: JSON.stringify({ source, body, status }) })
       if (!response.ok) throw new Error('Could not store event')
       const data = await response.json() as { event: HookEvent }
       setEvents(prev => [data.event, ...prev.filter(event => event.id !== data.event.id)].slice(0, 50))
@@ -80,7 +84,8 @@ export default function App() {
   const replay = (event: HookEvent) => { void add(event.source, event.body, event.status === 429 ? 429 : 200) }
   const clear = async () => {
     try {
-      const response = await fetch('/api/events', { method: 'DELETE' })
+      if (!apiToken) throw new Error('Dashboard API is not connected')
+      const response = await fetch('/api/events', { method: 'DELETE', headers: { Authorization: 'Bearer ' + apiToken } })
       if (!response.ok) throw new Error('Clear failed')
       setApiOnline(true)
     } catch { setApiOnline(false) }
@@ -92,7 +97,7 @@ export default function App() {
   return <div className="app-shell">
     <TunnelHeader count={events.length} onSimulate={simulate} onClear={clear}/>
     <main className="main-content">
-      <div className="page-intro"><div><div className="eyebrow"><span/> DEVELOPER TOOLKIT <span className="eyebrow-line"/></div><h1>Webhook <span>observability.</span></h1><p>Inspect, replay, and debug every event flowing through your integration layer.</p></div><div className="environment"><span className={apiOnline ? 'env-dot' : 'env-dot offline'}/>{apiOnline ? 'BACKEND CONNECTED' : 'LOCAL FALLBACK'} <b>{apiOnline ? 'API' : 'DEMO'}</b></div></div>
+      <div className="page-intro"><div><div className="eyebrow"><span/> DEVELOPER TOOLKIT <span className="eyebrow-line"/></div><h1>Webhook <span>observability.</span></h1><p>Inspect, replay, and debug every event flowing through your integration layer.</p></div><div className="environment"><input aria-label="Dashboard API token" type="password" placeholder="Dashboard API token" value={tokenDraft} onChange={event => setTokenDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') setApiToken(tokenDraft.trim()) }}/><button className="btn btn-small btn-outline" onClick={() => setApiToken(tokenDraft.trim())}>Connect</button><span className={apiOnline ? 'env-dot' : 'env-dot offline'}/>{apiOnline ? 'CONNECTED' : 'LOCKED'} <b>{apiOnline ? 'API' : 'DEMO'}</b></div></div>
       <div className="stats-grid">
         <div className="stat-card"><div className="stat-icon cyan-bg"><Activity size={17}/></div><div><span>Total events</span><strong>{events.length.toString().padStart(2, '0')}</strong><small>{apiOnline ? 'Stored event history' : 'Current browser session'}</small></div><div className="stat-spark">↗</div></div>
         <div className="stat-card"><div className="stat-icon green-bg"><CheckCircle2 size={17}/></div><div><span>Successful</span><strong>{counts.ok.toString().padStart(2, '0')}</strong><small>200 responses</small></div></div>

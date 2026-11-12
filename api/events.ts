@@ -1,11 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { randomUUID } from 'node:crypto'
 import { addEvent, clearEvents, listEvents, type StoredEvent } from './_lib/store'
+import { dashboardAuthError } from './_lib/auth'
 
 const allowedStatuses = [200, 400, 429, 500] as const
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'no-store')
+  const authError = dashboardAuthError(req)
+  if (authError) return res.status(authError.status).json({ error: authError.message })
   if (req.method === 'GET') {
     return res.status(200).json({ events: await listEvents() })
   }
